@@ -2,6 +2,38 @@ version: "3"
 
 services:
   app:
+    container_name: app
     build: .
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sample
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: 1234
+    depends_on:
+      mysql:
+        condition: service_healthy
     ports:
       - "8088:8080"
+    networks:
+      - mynetwork
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: sample
+      MYSQL_USER: user
+      MYSQL_PASSWORD: 1234
+    ports:
+      - "3308:3306"
+    networks:
+      - mynetwork
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  mynetwork:
+    driver: bridge
